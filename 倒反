@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>修辭大挑戰：倒反與設問</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root {
+            --primary: #6366f1; /* Indigo */
+            --primary-dark: #4338ca;
+            --accent: #f59e0b; /* Amber */
+            --bg-gradient: linear-gradient(135deg, #e0e7ff 0%, #f3e8ff 100%);
+            --card-bg: #ffffff;
+            --text-main: #1f2937;
+            --text-light: #6b7280;
+            --success: #10b981;
+            --error: #ef4444;
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background: var(--bg-gradient);
+            color: var(--text-main);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        /* 主容器：手機版滿版，電腦版置中卡片 */
+        .app-container {
+            background: var(--card-bg);
+            width: 100%;
+            max-width: 600px; /* 手機適配寬度 */
+            min-height: 90vh;
+            border-radius: 24px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* 頂部導航 */
+        header {
+            padding: 20px;
+            text-align: center;
+            background: white;
+            border-bottom: 1px solid #f3f4f6;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        header h1 { margin: 0; font-size: 20px; color: var(--primary-dark); font-weight: 700; }
+        
+        /* 進度條 */
+        .progress-bar-container { height: 4px; width: 100%; background: #e5e7eb; }
+        .progress-bar { height: 100%; background: var(--accent); width: 0%; transition: width 0.3s; }
+
+        /* 內容區 */
+        main {
+            flex: 1;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+        }
+
+        /* 頁面切換動畫 */
+        .page {
+            display: none;
+            animation: fadeIn 0.4s ease-out;
+            width: 100%;
+        }
+        .page.active { display: block; }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 1. 首頁 (Welcome) */
+        .welcome-hero { text-align: center; margin-bottom: 30px; }
+        .hero-icon { font-size: 60px; color: var(--primary); margin-bottom: 15px; }
+        .welcome-title { font-size: 28px; font-weight: 900; margin-bottom: 10px; color: var(--text-main); }
+        .welcome-subtitle { font-size: 16px; color: var(--text-light); line-height: 1.6; }
+
+        .concept-tabs { display: flex; gap: 10px; margin-bottom: 20px; justify-content: center; }
+        .tab-btn {
+            padding: 8px 16px; border-radius: 20px; border: 1px solid #e5e7eb; background: white; color: var(--text-light); cursor: pointer; font-size: 14px;
+        }
+        .tab-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+
+        .concept-content {
+            background: #f9fafb; padding: 20px; border-radius: 16px; margin-bottom: 30px; text-align: left; font-size: 15px; line-height: 1.8;
+            border-left: 4px solid var(--primary);
+        }
+        .highlight { font-weight: bold; color: var(--primary-dark); }
+
+        /* 2. 測驗頁 (Quiz) */
+        .question-tag {
+            display: inline-block; background: #e0e7ff; color: var(--primary); padding: 4px 12px; border-radius: 12px; font-size: 13px; font-weight: bold; margin-bottom: 15px;
+        }
+        .question-text { font-size: 22px; font-weight: 700; line-height: 1.5; margin-bottom: 30px; }
+        
+        .option-btn {
+            width: 100%; padding: 18px 20px; margin-bottom: 12px; border: 2px solid #e5e7eb; background: white; border-radius: 16px; font-size: 17px; text-align: left; cursor: pointer; transition: all 0.2s; position: relative;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .option-btn:active { transform: scale(0.98); }
+        .option-btn.correct { border-color: var(--success); background: #ecfdf5; color: #064e3b; }
+        .option-btn.wrong { border-color: var(--error); background: #fef2f2; color: #7f1d1d; }
+
+        /* 回饋區 */
+        .feedback-modal {
+            margin-top: 20px; padding: 20px; background: #f8fafc; border-radius: 16px; display: none; animation: slideUp 0.3s;
+        }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .feedback-title { font-weight: bold; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+        
+        /* 3. 結果頁 (Result) */
+        .score-card {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white; padding: 40px 20px; border-radius: 24px; text-align: center; margin-bottom: 30px;
+            box-shadow: 0 10px 25px rgba(99, 102, 241, 0.3);
+        }
+        .score-big { font-size: 64px; font-weight: 900; line-height: 1; }
+        .score-label { font-size: 14px; opacity: 0.8; margin-bottom: 10px; }
+        .score-msg { font-size: 18px; font-weight: 500; margin-top: 10px; }
+
+        /* 通用按鈕 */
+        .btn {
+            width: 100%; padding: 16px; border-radius: 16px; font-size: 18px; font-weight: bold; cursor: pointer; border: none; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 10px;
+        }
+        .btn-primary { background: var(--text-main); color: white; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .btn-primary:hover { background: black; }
+        .btn-outline { background: white; border: 2px solid #e5e7eb; color: var(--text-main); margin-top: 10px; }
+        .btn-share { background: #25d366; color: white; margin-top: 10px; } /* WhatsApp/Line Green */
+
+        /* Toast Notification */
+        .toast {
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: white; padding: 10px 20px; border-radius: 30px; font-size: 14px; opacity: 0; transition: 0.3s; pointer-events: none;
+        }
+        .toast.show { opacity: 1; bottom: 50px; }
+
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <header>
+        <h1><i class="fa-solid fa-shapes"></i> 修辭大挑戰</h1>
+    </header>
+    <div class="progress-bar-container">
+        <div class="progress-bar" id="progress-bar"></div>
+    </div>
+
+    <main>
+        <!-- 1. 首頁 -->
+        <div id="page-home" class="page active">
+            <div class="welcome-hero">
+                <div class="hero-icon"><i class="fa-solid fa-book-open-reader"></i></div>
+                <div class="welcome-title">倒反 vs. 設問</div>
+                <div class="welcome-subtitle">10 題互動測驗，測試你的語感敏銳度！</div>
+            </div>
+
+            <!-- 簡單的觀念複習 Tab -->
+            <div class="concept-tabs">
+                <button class="tab-btn active" onclick="switchTab('dao')">倒反修辭</button>
+                <button class="tab-btn" onclick="switchTab('wen')">設問修辭</button>
+            </div>
+
+            <div id="tab-content-dao" class="concept-content">
+                <p><span class="highlight" style="color:#ef4444">😡 反語：</span>反話正說（諷刺）。<br>例：「你真聰明」其實是罵人笨。</p>
+                <p style="margin-top:10px;"><span class="highlight" style="color:#10b981">🥰 倒辭：</span>正話反說（親暱）。<br>例：「小壞蛋」其實是愛的表現。</p>
+            </div>
+            
+            <div id="tab-content-wen" class="concept-content" style="display:none;">
+                <p>❓ <strong>提問：</strong>有問有答。<br>(問君能有幾多愁？恰似一江春水...)</p>
+                <p>❗ <strong>激問：</strong>問而不答，答案在反面。<br>(冬天來了，春天還會遠嗎？)</p>
+                <p>💭 <strong>懸問：</strong>問而不答，答案未知。<br>(聰明的你，告訴我未來會怎樣？)</p>
+            </div>
+
+            <button class="btn btn-primary" onclick="startQuiz()">開始挑戰 <i class="fa-solid fa-arrow-right"></i></button>
+        </div>
+
+        <!-- 2. 測驗頁 -->
+        <div id="page-quiz" class="page">
+            <span class="question-tag" id="q-tag">題型</span>
+            <div class="question-text" id="q-text">題目載入中...</div>
+            
+            <div id="options-area"></div>
+
+            <div class="feedback-modal" id="feedback-area">
+                <div class="feedback-title" id="feedback-title"></div>
+                <div style="color: #4b5563; line-height: 1.6;" id="feedback-msg"></div>
+                <button class="btn btn-primary" style="margin-top: 15px;" onclick="nextQuestion()">下一題</button>
+            </div>
+        </div>
+
+        <!-- 3. 結果頁 -->
+        <div id="page-result" class="page">
+            <div class="score-card">
+                <div class="score-label">最終得分</div>
+                <div class="score-big" id="final-score">0</div>
+                <div class="score-msg" id="final-msg">評語載入中...</div>
+            </div>
+
+            <button class="btn btn-primary" style="background:#4F46E5" onclick="shareResult()">
+                <i class="fa-regular fa-copy"></i> 複製成績分享
+            </button>
+            
+            <button class="btn btn-outline" onclick="location.reload()">
+                <i class="fa-solid fa-rotate-right"></i> 再玩一次
+            </button>
+        </div>
+    </main>
+
+    <!-- 底部版權/Credit -->
+    <div style="text-align: center; padding: 10px; color: #9ca3af; font-size: 12px; background: #f9fafb;">
+        互動式修辭教學測驗
+    </div>
+</div>
+
+<div id="toast" class="toast">成績已複製！趕快去貼上分享吧！</div>
+
+<script>
+    // 題庫 (包含先前的優質題目)
+    const questions = [
+        {
+            type: "辨識修辭",
+            text: "媽媽看到滿地玩具，雙手叉腰說：「你房間真是『乾淨』得不得了啊！」",
+            options: ["倒辭 (正話反說)", "反語 (反話正說)", "激問", "提問"],
+            ans: 1,
+            expl: "這是「反語」。心裡想說髒，嘴上說乾淨，帶有諷刺責備意味。"
+        },
+        {
+            type: "辨識修辭",
+            text: "情侶打鬧時，女生笑著推男生：「你這個『大壞蛋』，討厭啦！」",
+            options: ["倒辭 (正話反說)", "反語 (反話正說)", "懸問", "譬喻"],
+            ans: 0,
+            expl: "這是「倒辭」。字面罵壞蛋，心裡是愛意，屬於打情罵俏的親暱表現。"
+        },
+        {
+            type: "設問分辨",
+            text: "「人生最寶貴的是什麼？我認為是時間。」",
+            options: ["激問 (明知故問)", "懸問 (無解)", "提問 (有問有答)", "反語"],
+            ans: 2,
+            expl: "自問自答，屬於「提問」。"
+        },
+        {
+            type: "設問分辨",
+            text: "「難道我們能眼睜睜看著地球環境被破壞嗎？」",
+            options: ["提問", "激問", "懸問", "倒辭"],
+            ans: 1,
+            expl: "這是「激問」。答案藏在問題的反面：意思是「我們不能」。"
+        },
+        {
+            type: "設問分辨",
+            text: "「聰明的你，告訴我未來的世界會變成什麼模樣呢？」(沒有後文)",
+            options: ["提問", "激問", "懸問", "反語"],
+            ans: 2,
+            expl: "這是「懸問」。沒有給出標準答案，留給讀者思考空間。"
+        },
+        {
+            type: "混合題型",
+            text: "「你連加法都算錯，真是個『天才』啊！難道你上課都在睡覺嗎？」",
+            options: ["倒辭 + 提問", "反語 + 激問", "反語 + 懸問", "倒辭 + 激問"],
+            ans: 1,
+            expl: "天才(諷刺)=反語；難道...(暗示是)=激問。"
+        },
+        {
+            type: "詩詞應用",
+            text: "雪萊：「冬天來了，春天還會遠嗎？」",
+            options: ["提問", "激問", "懸問", "反語"],
+            ans: 1,
+            expl: "這是「激問」。雖是問句，但本意是肯定的：春天不遠了。"
+        },
+        {
+            type: "詩詞應用",
+            text: "李煜：「問君能有幾多愁？恰似一江春水向東流。」",
+            options: ["提問", "激問", "懸問", "倒辭"],
+            ans: 0,
+            expl: "這是「提問」。先問愁有多少，接著回答像春水流。"
+        },
+        {
+            type: "情境應用",
+            text: "奶奶看著孫子吃相，笑說：「唉唷，這『貪吃鬼』，以後誰養得起你呀？」",
+            options: ["倒辭", "反語", "映襯", "譬喻"],
+            ans: 0,
+            expl: "這是「倒辭」。表面罵貪吃鬼，實際是充滿愛的溺愛表現。"
+        },
+        {
+            type: "情境應用",
+            text: "「我們為了什麼而活？這是每個人一生都在追尋的答案。」",
+            options: ["提問", "激問", "懸問", "反語"],
+            ans: 2,
+            expl: "這是「懸問」。雖然有解釋，但沒有給出具體答案，仍是未知的追尋。"
+        }
+    ];
+
+    let currentIdx = 0;
+    let score = 0;
+    let canAnswer = true;
+
+    // 介面切換
+    function showPage(pageId) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.getElementById(pageId).classList.add('active');
+    }
+
+    // Tab 切換
+    function switchTab(type) {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.concept-content').forEach(c => c.style.display = 'none');
+        
+        if (type === 'dao') {
+            document.querySelector("button[onclick=\"switchTab('dao')\"]").classList.add('active');
+            document.getElementById('tab-content-dao').style.display = 'block';
+        } else {
+            document.querySelector("button[onclick=\"switchTab('wen')\"]").classList.add('active');
+            document.getElementById('tab-content-wen').style.display = 'block';
+        }
+    }
+
+    // 開始測驗
+    function startQuiz() {
+        currentIdx = 0;
+        score = 0;
+        showPage('page-quiz');
+        loadQuestion();
+    }
+
+    // 載入題目
+    function loadQuestion() {
+        canAnswer = true;
+        const q = questions[currentIdx];
+        
+        // 更新 UI
+        document.getElementById('progress-bar').style.width = `${((currentIdx) / questions.length) * 100}%`;
+        document.getElementById('q-tag').innerText = q.type;
+        document.getElementById('q-text').innerText = q.text;
+        document.getElementById('feedback-area').style.display = 'none';
+        
+        const optsArea = document.getElementById('options-area');
+        optsArea.innerHTML = '';
+
+        q.options.forEach((opt, idx) => {
+            const btn = document.createElement('div');
+            btn.className = 'option-btn';
+            btn.innerHTML = `<span>${opt}</span> <i class="fa-regular fa-circle"></i>`;
+            btn.onclick = () => submitAnswer(idx, btn);
+            optsArea.appendChild(btn);
+        });
+    }
+
+    // 提交答案
+    function submitAnswer(selectedIdx, btn) {
+        if (!canAnswer) return;
+        canAnswer = false;
+
+        const q = questions[currentIdx];
+        const isCorrect = selectedIdx === q.ans;
+        const opts = document.querySelectorAll('.option-btn');
+
+        if (isCorrect) {
+            score += 10;
+            btn.classList.add('correct');
+            btn.innerHTML = `<span>${q.options[selectedIdx]}</span> <i class="fa-solid fa-circle-check"></i>`;
+            document.getElementById('feedback-title').innerHTML = `<i class="fa-solid fa-check" style="color:var(--success)"></i> 答對了！`;
+        } else {
+            btn.classList.add('wrong');
+            btn.innerHTML = `<span>${q.options[selectedIdx]}</span> <i class="fa-solid fa-circle-xmark"></i>`;
+            document.getElementById('feedback-title').innerHTML = `<i class="fa-solid fa-xmark" style="color:var(--error)"></i> 答錯了...`;
+            
+            // 顯示正確答案
+            opts[q.ans].classList.add('correct');
+            opts[q.ans].innerHTML = `<span>${q.options[q.ans]}</span> <i class="fa-solid fa-circle-check"></i>`;
+        }
+
+        document.getElementById('feedback-msg').innerText = q.expl;
+        document.getElementById('feedback-area').style.display = 'block';
+
+        // 最後一題改變按鈕文字
+        const nextBtn = document.querySelector("#feedback-area button");
+        if (currentIdx === questions.length - 1) {
+            nextBtn.innerText = "查看成績";
+        } else {
+            nextBtn.innerText = "下一題";
+        }
+    }
+
+    // 下一題
+    function nextQuestion() {
+        if (currentIdx < questions.length - 1) {
+            currentIdx++;
+            loadQuestion();
+        } else {
+            showResult();
+        }
+    }
+
+    // 顯示結果
+    function showResult() {
+        showPage('page-result');
+        document.getElementById('progress-bar').style.width = '100%';
+        
+        // 分數動畫
+        const scoreEl = document.getElementById('final-score');
+        let tempScore = 0;
+        const timer = setInterval(() => {
+            if (tempScore >= score) {
+                clearInterval(timer);
+                scoreEl.innerText = score;
+            } else {
+                tempScore++;
+                scoreEl.innerText = tempScore;
+            }
+        }, 30);
+
+        // 評語
+        let msg = "";
+        if (score === 100) msg = "太神了！你是修辭大師！🏆";
+        else if (score >= 80) msg = "很棒喔！只有一點點小失誤！👏";
+        else if (score >= 60) msg = "及格了！倒反和三問還要再分清楚一點喔！📚";
+        else msg = "加油！建議重新複習一下觀念再挑戰！💪";
+        document.getElementById('final-msg').innerText = msg;
+    }
+
+    // 分享功能
+    function shareResult() {
+        const text = `我在【修辭大挑戰】獲得了 ${score} 分！\n${document.getElementById('final-msg').innerText}\n你也來挑戰看看吧！`;
+        
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(text).then(() => {
+                showToast();
+            });
+        } else {
+            // Fallback
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand("Copy");
+            textArea.remove();
+            showToast();
+        }
+    }
+
+    function showToast() {
+        const toast = document.getElementById('toast');
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 2000);
+    }
+</script>
+
+</body>
+</html>
